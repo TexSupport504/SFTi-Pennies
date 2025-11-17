@@ -23,7 +23,7 @@ Welcome to **SFTi-Pennies** - a comprehensive, fully automated trading journal s
 - **🤖 Fully Automated** - GitHub Actions handle all processing and deployments
 - **📊 Advanced Analytics** - Expectancy, profit factor, Kelly Criterion, max drawdown (all verified and production-ready)
 - **💰 Account Tracking** - Starting balance, deposits, portfolio value with percentage-based returns
-- **⚡ Real-Time Updates** - Reactive event system updates all pages instantly without reload
+- **⚡ Real-Time Updates** - Reactive event system updates all pages via the Reload function in the Profile Menu
 - **📥 Import/Export** - CSV import from major brokers (IBKR, Schwab, Robinhood, Webull)
 - **📝 Weekly Reviews** - Structured review workflow for continuous improvement
 - **📚 Integrated Library** - Books and notes management with PDF/Markdown viewers
