@@ -2,7 +2,7 @@
 
 **Automated penny stock trading journal with professional analytics • Mobile-first PWA • GitHub-powered**
 
-[![Live Journal](https://img.shields.io/badge/🌐_Live_Site-Visit-00ff88?style=for-the-badge)](https://statikfintechllc.github.io/SFTi-Pennies/)
+[![Live Journal](https://img.shields.io/badge/🌐_Live_Site-Visit-00ff88?style=for-the-badge)](https://statikfintech-llc.github.io/SFTi-Pennies/)
 [![SFTi AI](https://img.shields.io/badge/🤖_Platform-SFTi_AI-00ff88?style=for-the-badge)](https://www.sfti-ai.org)
 
 -----
