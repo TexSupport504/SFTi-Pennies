@@ -1,0 +1,12 @@
+{
+  "labels": [],
+  "datasets": [
+    {
+      "label": "Equity Curve",
+      "data": [],
+      "borderColor": "#00ff88",
+      "backgroundColor": "rgba(0, 255, 136, 0.1)",
+      "tension": 0.4
+    }
+  ]
+}
