@@ -152,7 +152,7 @@ SFTi-Pennies/
 
 ### For Visitors
 
-1. Visit [live site](https://statikfintechllc.github.io/SFTi-Pennies/)
+1. Visit [live site](https://statikfintech-llc.github.io/SFTi-Pennies/)
 1. Browse recent trades on homepage
 1. Check analytics dashboard
 1. Review weekly summaries
