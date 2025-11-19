@@ -272,4 +272,4 @@ Custom License - See [LICENSE](./LICENSE)
 **Author:** StatikFintech LLC  
 **Last Updated:** November 2025
 
-[![GitHub stars](https://img.shields.io/github/stars/statikfintechllc/SFTi-Pennies?style=social)](https://github.com/statikfintechllc/SFTi-Pennies)
+[![GitHub stars](https://img.shields.io/github/stars/statikfintech-llc/SFTi-Pennies?style=social)](https://github.com/statikfintech-llc/SFTi-Pennies)
