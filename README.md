@@ -1,8 +1,12 @@
-# 📈 SFTi-Pennies Trading Journal
+<h1>📈 SFTi-Pennies Trading Journal<h1></h1>
 
 **Automated penny stock trading journal with professional analytics • Mobile-first PWA • GitHub-powered**
 
+<div align="center">
+    
 [![Live Journal](https://img.shields.io/badge/🌐_Live_Site-Visit-00ff88?style=for-the-badge)](https://statikfintech-llc.github.io/SFTi-Pennies/)
+
+</div>
 
 -----
 
@@ -256,9 +260,8 @@ Live Update on Site
 
 ## 🔗 Links
 
-- **Live Journal:** [statikfintechllc.github.io/SFTi-Pennies](https://statikfintechllc.github.io/SFTi-Pennies/)
-- **SFTi AI Platform:** [www.sfti-ai.org](https://www.sfti-ai.org)
-- **Ascend Institute:** [www.sfti-ai.org/ascend-institute](https://www.sfti-ai.org/ascend-institute)
+- [**Live Journal:**](https://statikfintech-llc.github.io/SFTi-Pennies/)
+- [**Ascend Institute**](https://statikfintechllc.github.io/Ascend-Institute/)
 - **Mentors:** [Timothy Sykes](https://timothysykes.com) • [Tim Bohen](https://www.leadtrader.com)
 
 -----
