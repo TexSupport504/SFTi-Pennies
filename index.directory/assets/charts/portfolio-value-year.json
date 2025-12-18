@@ -1,14 +1,16 @@
 {
   "labels": [
-    "W47 11/19",
-    "W46 11/19"
+    "W46 11/12",
+    "W44 11/03",
+    "W45 11/10"
   ],
   "datasets": [
     {
       "label": "Portfolio Value",
       "data": [
-        0,
-        0
+        119,
+        78.86000000000001,
+        102.82000000000001
       ],
       "borderColor": "#00ff88",
       "backgroundColor": "rgba(0, 255, 136, 0.1)",
