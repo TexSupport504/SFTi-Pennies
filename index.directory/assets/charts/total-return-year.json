@@ -1,16 +1,14 @@
 {
   "labels": [
-    "W46 11/12",
-    "W44 11/03",
-    "W45 11/10"
+    "W51 12/18",
+    "W50 12/18"
   ],
   "datasets": [
     {
       "label": "Total Return %",
       "data": [
         0,
-        -33.73,
-        -13.6
+        0
       ],
       "borderColor": "#00d4ff",
       "backgroundColor": "rgba(0, 212, 255, 0.1)",
