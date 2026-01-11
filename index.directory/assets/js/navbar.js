@@ -82,6 +82,7 @@ class Navbar {
           <ul id="auth-dropdown-menu" class="auth-dropdown-menu" role="menu">
             <li><button class="auth-dropdown-option" data-action="auth" id="auth-git-action">Git.Auth</button></li>
             <li><button class="auth-dropdown-option" data-action="refresh">Re-Fresh</button></li>
+            <li><button class="auth-dropdown-option" data-action="customize">Customize</button></li>
           </ul>
         </div>
       </li>
@@ -278,6 +279,8 @@ class Navbar {
           this.handleAuthAction();
         } else if (action === 'refresh') {
           this.handleRefreshAction();
+        } else if (action === 'customize') {
+          this.handleCustomizeAction();
         }
       });
     });
@@ -338,6 +341,34 @@ class Navbar {
     } else {
       // No service worker, just reload
       window.location.reload(true);
+    }
+  }
+  
+  /**
+   * Handle customize action
+   */
+  handleCustomizeAction() {
+    // Check if customize modal exists (injected by customize-modal.js)
+    const modal = document.getElementById('customize-modal');
+    
+    if (modal && typeof openCustomizeModal === 'function') {
+      // Modal exists, use it
+      openCustomizeModal();
+    } else {
+      // Fallback: navigate to customization.html page
+      const basePath = window.SFTiUtils ? SFTiUtils.getBasePath() : '';
+      const pathParts = window.location.pathname.split('/').filter(part => part !== '');
+      const inIndexDirectory = pathParts.includes('index.directory');
+      
+      // Get current page name to pass to customization page
+      const currentPage = window.SFTiUtils ? SFTiUtils.getCurrentPageName() : 'index';
+      const pageParam = `&page=${encodeURIComponent(currentPage)}`;
+      
+      if (inIndexDirectory) {
+        window.location.href = `customization.html?category=colors${pageParam}`;
+      } else {
+        window.location.href = `${basePath}/index.directory/customization.html?category=colors${pageParam}`;
+      }
     }
   }
 }

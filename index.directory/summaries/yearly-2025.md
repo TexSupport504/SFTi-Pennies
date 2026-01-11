@@ -4,15 +4,15 @@
 
 ## Statistics
 
-- **Total Trades**: 1
-- **Winning Trades**: 1
-- **Losing Trades**: 0
-- **Win Rate**: 100.0%
-- **Total P&L**: $6.19
-- **Average P&L per Trade**: $6.19
-- **Best Trade**: MSPR (+$6.19)
-- **Worst Trade**: MSPR ($6.19)
-- **Total Volume Traded**: 101.0 shares
+- **Total Trades**: 10
+- **Winning Trades**: 5
+- **Losing Trades**: 5
+- **Win Rate**: 50.0%
+- **Total P&L**: $-16.18
+- **Average P&L per Trade**: $-1.62
+- **Best Trade**: CHR (+$14.70)
+- **Worst Trade**: PHIO ($-25.08)
+- **Total Volume Traded**: 1,007.0 shares
 
 ## Performance Analysis
 
@@ -30,7 +30,10 @@ _To be filled in manually during review_
 
 ## Strategy Breakdown
 
-- **VWAP Hold**: 1 trades, $6.19 P&L
+- **VWAP Hold**: 2 trades, $20.27 P&L
+- **Breakout**: 6 trades, $-32.75 P&L
+- **VWAP Bounce**: 1 trades, $-6.90 P&L
+- **Continuation**: 1 trades, $3.20 P&L
 
 ## Next Period Goals
 
@@ -40,4 +43,4 @@ _To be filled in manually during review_
 
 ---
 
-**Generated**: 2025-11-04 02:50:29
+**Generated**: 2026-01-02 00:18:26

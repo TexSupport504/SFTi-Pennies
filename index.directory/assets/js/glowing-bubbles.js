@@ -67,7 +67,8 @@
         </svg>`,
         dropdownItems: [
           { label: 'Git.Auth', action: 'auth' },
-          { label: 'Re-Fresh', action: 'refresh' }
+          { label: 'Re-Fresh', action: 'refresh' },
+          { label: 'Customize', action: 'customize' }
         ]
       },
       {
@@ -350,6 +351,29 @@
       } else {
         // No service worker, just reload
         window.location.reload(true);
+      }
+    } else if (action === 'customize') {
+      // Check if customize modal exists (injected by customize-modal.js)
+      const modal = document.getElementById('customize-modal');
+      
+      if (modal && typeof openCustomizeModal === 'function') {
+        // Modal exists, use it
+        openCustomizeModal();
+      } else {
+        // Fallback: navigate to customization.html page
+        const pathParts = window.location.pathname.split('/').filter(part => part !== '');
+        const inIndexDirectory = pathParts.includes('index.directory');
+        
+        // Get current page name to pass to customization page
+        const currentPage = window.SFTiUtils ? SFTiUtils.getCurrentPageName() : 'index';
+        const pageParam = `&page=${encodeURIComponent(currentPage)}`;
+        
+        if (inIndexDirectory) {
+          window.location.href = `customization.html?category=colors${pageParam}`;
+        } else {
+          const rootPath = basePath ? basePath.replace(/\/$/, '') : '';
+          window.location.href = `${rootPath}/index.directory/customization.html?category=colors${pageParam}`;
+        }
       }
     }
   }

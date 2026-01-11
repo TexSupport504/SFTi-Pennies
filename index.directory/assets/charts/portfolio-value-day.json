@@ -1,14 +1,14 @@
 {
   "labels": [
-    "00:06",
-    "00:06"
+    "00:30",
+    "00:30"
   ],
   "datasets": [
     {
       "label": "Portfolio Value",
       "data": [
-        0,
-        0
+        400,
+        400
       ],
       "borderColor": "#00ff88",
       "backgroundColor": "rgba(0, 255, 136, 0.1)",
