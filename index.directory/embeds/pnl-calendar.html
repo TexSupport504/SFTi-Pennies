@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P&L Calendar</title>
+<style>
+:root { --bg: #0a0e27; --text: #e4e4e7; --card-bg: rgba(255,255,255,0.06); --border: #27272a; --green: #00ff88; --red: #ff4757; --accent: #ffd93d; }
+.theme-light { --bg: #f8f9fa; --text: #1a1a2e; --card-bg: rgba(0,0,0,0.04); --border: #dee2e6; --green: #00c853; --red: #d32f2f; --accent: #ff8f00; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 12px; overflow-x: hidden; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
+.header h2 { font-size: 16px; font-weight: 600; }
+.nav-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.nav-btn:hover { border-color: var(--accent); }
+.stats { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.stat { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12px; }
+.stat .val { font-size: 18px; font-weight: 700; margin-top: 2px; }
+.stat .val.pos { color: var(--green); }
+.stat .val.neg { color: var(--red); }
+.dow-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 2px; }
+.dow-header div { text-align: center; font-size: 10px; font-weight: 600; color: var(--text); opacity: 0.5; padding: 4px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.day { min-height: 64px; border-radius: 6px; padding: 4px 6px; position: relative; border: 1px solid transparent; transition: all 0.15s; }
+.day:hover { border-color: var(--accent); transform: scale(1.02); z-index: 2; }
+.day.empty { opacity: 0.15; }
+.day .date { font-size: 10px; opacity: 0.6; }
+.day .pnl { font-size: 13px; font-weight: 700; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+.day .trades { font-size: 9px; opacity: 0.6; margin-top: 2px; }
+.day.win { background: rgba(0, 255, 136, 0.12); border-color: rgba(0, 255, 136, 0.2); }
+.day.win .pnl { color: var(--green); }
+.day.loss { background: rgba(255, 71, 87, 0.12); border-color: rgba(255, 71, 87, 0.2); }
+.day.loss .pnl { color: var(--red); }
+.day.big-win { background: rgba(0, 255, 136, 0.25); border-color: rgba(0, 255, 136, 0.4); }
+.day.big-loss { background: rgba(255, 71, 87, 0.25); border-color: rgba(255, 71, 87, 0.4); }
+.day.today { box-shadow: 0 0 0 2px var(--accent); }
+.trade-card { display: flex; justify-content: space-between; align-items: center; font-size: 9px; padding: 1px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+.trade-card .ticker { font-weight: 600; }
+.trade-card .tpnl { font-family: monospace; }
+.trade-card .tpnl.pos { color: var(--green); }
+.trade-card .tpnl.neg { color: var(--red); }
+.monthly-total { text-align: center; margin-top: 8px; padding: 8px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); }
+.monthly-total .label { font-size: 11px; opacity: 0.6; }
+.monthly-total .val { font-size: 20px; font-weight: 800; }
+.theme-toggle { position: fixed; top: 8px; right: 8px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"></button>
+<div class="header">
+  <button class="nav-btn" onclick="changeMonth(-1)">&larr;</button>
+  <h2 id="monthLabel"></h2>
+  <button class="nav-btn" onclick="changeMonth(1)">&rarr;</button>
+</div>
+<div class="stats" id="stats"></div>
+<div class="dow-header"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+<div class="cal-grid" id="calGrid"></div>
+<div class="monthly-total" id="monthTotal"></div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+let theme = params.get('theme') || localStorage.getItem('sfti-theme') || 'dark';
+document.body.classList.add('theme-' + theme);
+document.getElementById('themeBtn').textContent = theme === 'dark' ? '\u263E' : '\u2600';
+
+function toggleTheme() {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.body.className = 'theme-' + theme;
+  localStorage.setItem('sfti-theme', theme);
+  document.getElementById('themeBtn').textContent = theme === 'dark' ? '\u263E' : '\u2600';
+}
+
+let currentDate = new Date();
+let dailyPnl = {};
+
+async function loadData() {
+  try {
+    const resp = await fetch('../trades-index.json');
+    const data = await resp.json();
+    dailyPnl = data.daily_pnl || {};
+    const dates = Object.keys(dailyPnl).sort();
+    if (dates.length > 0) {
+      const last = new Date(dates[dates.length - 1] + 'T12:00:00');
+      currentDate = new Date(last.getFullYear(), last.getMonth(), 1);
+    }
+    renderCalendar();
+  } catch (e) { console.error('Failed to load:', e); }
+}
+
+function changeMonth(delta) {
+  currentDate.setMonth(currentDate.getMonth() + delta);
+  renderCalendar();
+}
+
+function fmt(n) {
+  const abs = Math.abs(n);
+  const s = abs >= 1000 ? abs.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0}) : abs.toFixed(0);
+  return n >= 0 ? '+$' + s : '-$' + s;
+}
+
+function renderCalendar() {
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const names = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('monthLabel').textContent = names[month] + ' ' + year;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  let mPnl = 0, mWins = 0, mLosses = 0, mTrades = 0;
+  let html = '';
+
+  for (let i = 0; i < firstDay; i++) html += '<div class="day empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const dd = dailyPnl[ds];
+    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+    let cls = 'day';
+    if (isToday) cls += ' today';
+
+    if (dd) {
+      const net = dd.net;
+      mPnl += net; mTrades += dd.trades.length;
+      if (net > 0) { mWins++; cls += Math.abs(net) > 1000 ? ' big-win' : ' win'; }
+      else if (net < 0) { mLosses++; cls += Math.abs(net) > 1000 ? ' big-loss' : ' loss'; }
+
+      let cards = '';
+      for (const t of dd.trades) {
+        const arrow = t.direction === 'LONG' ? '\u25B2' : '\u25BC';
+        const tc = t.pnl >= 0 ? 'pos' : 'neg';
+        cards += '<div class="trade-card"><span class="ticker">' + t.ticker + ' ' + arrow + '</span><span class="tpnl ' + tc + '">' + fmt(t.pnl) + '</span></div>';
+      }
+      html += '<div class="' + cls + '"><div class="date">' + d + '</div><div class="pnl">' + fmt(net) + '</div>' + cards + '</div>';
+    } else {
+      html += '<div class="' + cls + '"><div class="date">' + d + '</div></div>';
+    }
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+  const tc = mPnl >= 0 ? 'pos' : 'neg';
+  document.getElementById('monthTotal').innerHTML = '<div class="label">Monthly P&L (' + mTrades + ' trades)</div><div class="val ' + tc + '">' + fmt(mPnl) + '</div>';
+  document.getElementById('stats').innerHTML =
+    '<div class="stat"><div>Trades</div><div class="val">' + mTrades + '</div></div>' +
+    '<div class="stat"><div>Win Days</div><div class="val pos">' + mWins + '</div></div>' +
+    '<div class="stat"><div>Loss Days</div><div class="val neg">' + mLosses + '</div></div>' +
+    '<div class="stat"><div>Win Rate</div><div class="val">' + (mWins + mLosses > 0 ? Math.round(mWins / (mWins + mLosses) * 100) : 0) + '%</div></div>';
+}
+
+loadData();
+</script>
+</body>
+</html>
