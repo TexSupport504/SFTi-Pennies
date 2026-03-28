@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Win/Loss Breakdown</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<style>
+:root { --bg: #0a0e27; --text: #e4e4e7; --card-bg: rgba(255,255,255,0.06); --border: #27272a; --green: #00ff88; --red: #ff4757; }
+.theme-light { --bg: #f8f9fa; --text: #1a1a2e; --card-bg: rgba(0,0,0,0.04); --border: #dee2e6; --green: #00c853; --red: #d32f2f; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 16px; height: 100vh; display: flex; gap: 16px; align-items: center; }
+.chart-side { width: 45%; position: relative; }
+.stats-side { width: 55%; display: flex; flex-direction: column; gap: 10px; }
+.stat-row { display: flex; justify-content: space-between; padding: 10px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; }
+.stat-row .label { font-size: 12px; opacity: 0.6; }
+.stat-row .val { font-size: 18px; font-weight: 700; }
+.stat-row .val.pos { color: var(--green); }
+.stat-row .val.neg { color: var(--red); }
+</style>
+</head>
+<body>
+<div class="chart-side"><canvas id="chart"></canvas></div>
+<div class="stats-side" id="stats"></div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const theme = params.get('theme') || 'dark';
+document.body.classList.add('theme-' + theme);
+
+async function load() {
+  const resp = await fetch('../trades-index.json');
+  const data = await resp.json();
+  const s = data.statistics || {};
+
+  new Chart(document.getElementById('chart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Wins', 'Losses'],
+      datasets: [{ data: [s.winning_trades, s.losing_trades], backgroundColor: ['#00ff88', '#ff4757'], borderWidth: 0, cutout: '70%' }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: theme === 'dark' ? '#e4e4e7' : '#1a1a2e', font: { size: 12 } } },
+        tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed + ' trades' } }
+      }
+    }
+  });
+
+  const fmt = n => (n >= 0 ? '+$' : '-$') + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: 2});
+  document.getElementById('stats').innerHTML =
+    '<div class="stat-row"><div><div class="label">Win Rate</div><div class="val pos">' + s.win_rate + '%</div></div><div><div class="label">Profit Factor</div><div class="val">' + s.profit_factor + '</div></div></div>' +
+    '<div class="stat-row"><div><div class="label">Avg Win</div><div class="val pos">' + fmt(s.average_win) + '</div></div><div><div class="label">Avg Loss</div><div class="val neg">' + fmt(s.average_loss) + '</div></div></div>' +
+    '<div class="stat-row"><div><div class="label">Best Trade</div><div class="val pos">' + fmt(s.best_trade) + '</div></div><div><div class="label">Worst Trade</div><div class="val neg">' + fmt(s.worst_trade) + '</div></div></div>' +
+    '<div class="stat-row"><div><div class="label">Win Streak</div><div class="val">' + s.max_win_streak + '</div></div><div><div class="label">Loss Streak</div><div class="val">' + s.max_loss_streak + '</div></div></div>' +
+    '<div class="stat-row"><div><div class="label">Max Drawdown</div><div class="val neg">-$' + s.max_drawdown.toLocaleString('en-US', {minimumFractionDigits: 2}) + '</div></div><div><div class="label">Total P&L</div><div class="val ' + (s.total_pnl >= 0 ? 'pos' : 'neg') + '">' + fmt(s.total_pnl) + '</div></div></div>';
+}
+load();
+</script>
+</body>
+</html>
