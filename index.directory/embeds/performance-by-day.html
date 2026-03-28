@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance by Day of Week</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<style>
+:root { --bg: #0a0e27; --text: #e4e4e7; --green: #00ff88; --red: #ff4757; }
+.theme-light { --bg: #f8f9fa; --text: #1a1a2e; --green: #00c853; --red: #d32f2f; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 16px; height: 100vh; display: flex; flex-direction: column; }
+h3 { font-size: 14px; margin-bottom: 8px; opacity: 0.7; }
+.chart-wrap { flex: 1; position: relative; }
+</style>
+</head>
+<body>
+<h3>P&L by Day of Week</h3>
+<div class="chart-wrap"><canvas id="chart"></canvas></div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const theme = params.get('theme') || 'dark';
+document.body.classList.add('theme-' + theme);
+const isDark = theme === 'dark';
+
+async function load() {
+  const resp = await fetch('../trades-index.json');
+  const data = await resp.json();
+  const bd = data.by_day_of_week || {};
+  const order = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const labels = order.filter(d => bd[d]);
+  const values = labels.map(d => bd[d].total);
+  const counts = labels.map(d => bd[d].count);
+  const colors = values.map(v => v >= 0 ? '#00ff88' : '#ff4757');
+
+  new Chart(document.getElementById('chart'), {
+    type: 'bar',
+    data: {
+      labels: labels.map(d => d.slice(0, 3)),
+      datasets: [{ data: values, backgroundColor: colors, borderRadius: 6, barThickness: 40 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: (ctx) => '$' + ctx.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' (' + counts[ctx.dataIndex] + ' trades)' }
+      }},
+      scales: {
+        x: { ticks: { color: isDark ? '#e4e4e7' : '#1a1a2e', font: { weight: 'bold' } }, grid: { display: false } },
+        y: { ticks: { color: isDark ? '#71717a' : '#6b7280', callback: v => '$' + v.toLocaleString() }, grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' } }
+      }
+    }
+  });
+}
+load();
+</script>
+</body>
+</html>
