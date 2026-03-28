@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equity Curve</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<style>
+:root { --bg: #0a0e27; --text: #e4e4e7; --green: #00ff88; --red: #ff4757; --grid: rgba(255,255,255,0.06); }
+.theme-light { --bg: #f8f9fa; --text: #1a1a2e; --green: #00c853; --red: #d32f2f; --grid: rgba(0,0,0,0.08); }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 16px; height: 100vh; display: flex; flex-direction: column; }
+h3 { font-size: 14px; margin-bottom: 8px; opacity: 0.7; }
+.chart-wrap { flex: 1; position: relative; }
+.stats { display: flex; gap: 16px; margin-top: 8px; font-size: 12px; }
+.stats span { opacity: 0.6; }
+.stats b { font-size: 16px; }
+.stats b.pos { color: var(--green); }
+.stats b.neg { color: var(--red); }
+</style>
+</head>
+<body>
+<h3>Equity Curve</h3>
+<div class="chart-wrap"><canvas id="chart"></canvas></div>
+<div class="stats" id="stats"></div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const theme = params.get('theme') || 'dark';
+document.body.classList.add('theme-' + theme);
+const isDark = theme === 'dark';
+
+async function load() {
+  const resp = await fetch('../trades-index.json');
+  const data = await resp.json();
+  const eq = data.equity_curve || [];
+  const stats = data.statistics || {};
+
+  const labels = eq.map(e => e.date);
+  const values = eq.map(e => e.balance);
+
+  const gradient = document.getElementById('chart').getContext('2d');
+  const g = gradient.createLinearGradient(0, 0, 0, 300);
+  const lastVal = values[values.length - 1] || 0;
+  if (lastVal >= 0) {
+    g.addColorStop(0, 'rgba(0, 255, 136, 0.3)');
+    g.addColorStop(1, 'rgba(0, 255, 136, 0.0)');
+  } else {
+    g.addColorStop(0, 'rgba(255, 71, 87, 0.3)');
+    g.addColorStop(1, 'rgba(255, 71, 87, 0.0)');
+  }
+
+  new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        borderColor: lastVal >= 0 ? '#00ff88' : '#ff4757',
+        backgroundColor: g,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => '$' + ctx.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2}) }
+      }},
+      scales: {
+        x: { ticks: { color: isDark ? '#71717a' : '#6b7280', maxTicksLimit: 8, font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: isDark ? '#71717a' : '#6b7280', callback: v => '$' + v.toLocaleString(), font: { size: 10 } }, grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' } }
+      }
+    }
+  });
+
+  const cls = stats.total_pnl >= 0 ? 'pos' : 'neg';
+  const sign = stats.total_pnl >= 0 ? '+' : '';
+  document.getElementById('stats').innerHTML =
+    '<div><span>Total P&L</span><br><b class="' + cls + '">' + sign + '$' + stats.total_pnl.toLocaleString('en-US', {minimumFractionDigits: 2}) + '</b></div>' +
+    '<div><span>Win Rate</span><br><b>' + stats.win_rate + '%</b></div>' +
+    '<div><span>Trades</span><br><b>' + stats.total_trades + '</b></div>' +
+    '<div><span>Profit Factor</span><br><b>' + stats.profit_factor + '</b></div>';
+}
+load();
+</script>
+</body>
+</html>
