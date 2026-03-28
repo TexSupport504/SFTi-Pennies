@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Milestones</title>
+<style>
+:root { --bg: #0a0e27; --text: #e4e4e7; --card-bg: rgba(255,255,255,0.06); --border: #27272a; --green: #00ff88; --red: #ff4757; --accent: #ffd93d; --blue: #00d4ff; }
+.theme-light { --bg: #f8f9fa; --text: #1a1a2e; --card-bg: rgba(0,0,0,0.04); --border: #dee2e6; --green: #00c853; --red: #d32f2f; --accent: #ff8f00; --blue: #1976d2; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: relative; overflow: hidden; }
+.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.card.green::before { background: var(--green); }
+.card.red::before { background: var(--red); }
+.card.gold::before { background: var(--accent); }
+.card.blue::before { background: var(--blue); }
+.card .icon { font-size: 24px; margin-bottom: 8px; }
+.card .label { font-size: 11px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
+.card .val { font-size: 22px; font-weight: 800; margin-top: 4px; }
+.card .val.pos { color: var(--green); }
+.card .val.neg { color: var(--red); }
+.card .sub { font-size: 11px; opacity: 0.5; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="grid" id="grid"></div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const theme = params.get('theme') || 'dark';
+document.body.classList.add('theme-' + theme);
+
+async function load() {
+  const resp = await fetch('../trades-index.json');
+  const data = await resp.json();
+  const trades = data.trades || [];
+  const stats = data.statistics || {};
+  const daily = data.daily_pnl || {};
+
+  if (trades.length === 0) { document.getElementById('grid').innerHTML = '<p>No trades yet</p>'; return; }
+
+  const firstTrade = trades[0];
+  const bestTrade = trades.reduce((a, b) => a.pnl_usd > b.pnl_usd ? a : b);
+  const worstTrade = trades.reduce((a, b) => a.pnl_usd < b.pnl_usd ? a : b);
+
+  const dailyEntries = Object.entries(daily).sort((a, b) => b[1].net - a[1].net);
+  const bestDay = dailyEntries[0];
+  const worstDay = dailyEntries[dailyEntries.length - 1];
+
+  const fmt = n => (n >= 0 ? '+$' : '-$') + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: 2});
+
+  let winStreak = 0, maxWS = 0, lossStreak = 0, maxLS = 0;
+  for (const t of trades) {
+    if (t.pnl_usd > 0) { winStreak++; lossStreak = 0; maxWS = Math.max(maxWS, winStreak); }
+    else if (t.pnl_usd < 0) { lossStreak++; winStreak = 0; maxLS = Math.max(maxLS, lossStreak); }
+  }
+
+  const cards = [
+    { icon: '\uD83C\uDFAF', label: 'First Trade', val: firstTrade.ticker, sub: firstTrade.entry_date + ' | ' + fmt(firstTrade.pnl_usd), cls: firstTrade.pnl_usd >= 0 ? 'green' : 'red' },
+    { icon: '\uD83D\uDCC8', label: 'Total Trades', val: stats.total_trades, sub: stats.winning_trades + ' wins / ' + stats.losing_trades + ' losses', cls: 'blue' },
+    { icon: '\uD83C\uDFC6', label: 'Best Single Trade', val: fmt(bestTrade.pnl_usd), sub: bestTrade.ticker + ' on ' + bestTrade.exit_date, cls: 'green', valCls: 'pos' },
+    { icon: '\uD83D\uDCA5', label: 'Worst Single Trade', val: fmt(worstTrade.pnl_usd), sub: worstTrade.ticker + ' on ' + worstTrade.exit_date, cls: 'red', valCls: 'neg' },
+    { icon: '\uD83D\uDCC5', label: 'Best Day', val: bestDay ? fmt(bestDay[1].net) : 'N/A', sub: bestDay ? bestDay[0] + ' (' + bestDay[1].trades.length + ' trades)' : '', cls: 'green', valCls: 'pos' },
+    { icon: '\uD83D\uDCC9', label: 'Worst Day', val: worstDay ? fmt(worstDay[1].net) : 'N/A', sub: worstDay ? worstDay[0] + ' (' + worstDay[1].trades.length + ' trades)' : '', cls: 'red', valCls: 'neg' },
+    { icon: '\uD83D\uDD25', label: 'Win Streak', val: maxWS + ' trades', sub: 'Longest consecutive wins', cls: 'gold' },
+    { icon: '\uD83D\uDCB0', label: 'Total P&L', val: fmt(stats.total_pnl), sub: 'Win rate: ' + stats.win_rate + '% | PF: ' + stats.profit_factor, cls: stats.total_pnl >= 0 ? 'green' : 'red', valCls: stats.total_pnl >= 0 ? 'pos' : 'neg' },
+  ];
+
+  document.getElementById('grid').innerHTML = cards.map(c =>
+    '<div class="card ' + c.cls + '"><div class="icon">' + c.icon + '</div><div class="label">' + c.label + '</div><div class="val ' + (c.valCls || '') + '">' + c.val + '</div><div class="sub">' + c.sub + '</div></div>'
+  ).join('');
+}
+load();
+</script>
+</body>
+</html>
