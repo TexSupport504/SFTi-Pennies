@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance by Ticker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<style>
+:root { --bg: #0a0e27; --text: #e4e4e7; --green: #00ff88; --red: #ff4757; }
+.theme-light { --bg: #f8f9fa; --text: #1a1a2e; --green: #00c853; --red: #d32f2f; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 16px; height: 100vh; }
+h3 { font-size: 14px; margin-bottom: 8px; opacity: 0.7; }
+.chart-wrap { height: calc(100vh - 50px); position: relative; }
+</style>
+</head>
+<body>
+<h3>P&L by Ticker</h3>
+<div class="chart-wrap"><canvas id="chart"></canvas></div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const theme = params.get('theme') || 'dark';
+document.body.classList.add('theme-' + theme);
+const isDark = theme === 'dark';
+
+async function load() {
+  const resp = await fetch('../trades-index.json');
+  const data = await resp.json();
+  const bt = data.by_ticker || {};
+  const sorted = Object.entries(bt).sort((a, b) => b[1].total - a[1].total);
+  const labels = sorted.map(e => e[0]);
+  const values = sorted.map(e => e[1].total);
+  const colors = values.map(v => v >= 0 ? '#00ff88' : '#ff4757');
+
+  new Chart(document.getElementById('chart'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{ data: values, backgroundColor: colors, borderRadius: 4, barThickness: 24 }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => '$' + ctx.parsed.x.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' (' + bt[ctx.label].count + ' trades)' }
+      }},
+      scales: {
+        x: { ticks: { color: isDark ? '#71717a' : '#6b7280', callback: v => '$' + v.toLocaleString() }, grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' } },
+        y: { ticks: { color: isDark ? '#e4e4e7' : '#1a1a2e', font: { weight: 'bold', size: 12 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+load();
+</script>
+</body>
+</html>
