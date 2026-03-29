@@ -3,101 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trading KPIs</title>
+<title>KPIs</title>
 <style>
-:root { --bg: #0a0e27; --text: #e4e4e7; --card-bg: rgba(255,255,255,0.06); --border: #27272a; --green: #00ff88; --red: #ff4757; --accent: #ffd93d; --blue: #00d4ff; }
-.theme-light { --bg: #f8f9fa; --text: #1a1a2e; --card-bg: rgba(0,0,0,0.04); --border: #dee2e6; --green: #00c853; --red: #d32f2f; --accent: #ff8f00; --blue: #1976d2; }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 12px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-.kpi { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; position: relative; overflow: hidden; }
-.kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-.kpi.green::after { background: linear-gradient(90deg, var(--green), transparent); }
-.kpi.red::after { background: linear-gradient(90deg, var(--red), transparent); }
-.kpi.blue::after { background: linear-gradient(90deg, var(--blue), transparent); }
-.kpi.gold::after { background: linear-gradient(90deg, var(--accent), transparent); }
-.kpi .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.5; font-weight: 600; }
-.kpi .value { font-size: 22px; font-weight: 800; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
-.kpi .value.pos { color: var(--green); }
-.kpi .value.neg { color: var(--red); }
-.kpi .value.blue { color: var(--blue); }
-.kpi .value.gold { color: var(--accent); }
-.kpi .sub { font-size: 10px; opacity: 0.4; margin-top: 4px; }
-.kpi .spark { display: flex; gap: 1px; align-items: flex-end; height: 20px; margin-top: 6px; }
-.kpi .spark .bar { width: 4px; border-radius: 1px; min-height: 2px; }
-.kpi .spark .bar.up { background: var(--green); }
-.kpi .spark .bar.down { background: var(--red); }
+:root{--bg:#fff;--text:#1a1a1a;--mute:#999;--border:#ebebeb;--green:#2d8a56;--red:#c0392b;--blue:#4a6fa5;--gold:#b8860b}
+.theme-dark{--bg:#0c0c0c;--text:#e8e8e8;--mute:#666;--border:#222;--green:#4a9e6e;--red:#c75050;--blue:#6b8fc2;--gold:#c99a2e}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding:0;line-height:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0;border-bottom:1px solid var(--border)}
+.kpi{padding:12px 16px;border-right:1px solid var(--border);border-top:1px solid var(--border)}
+.kpi:last-child{border-right:none}
+.label{font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--mute);font-weight:500}
+.value{font-size:20px;font-weight:600;margin-top:4px;font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:-0.5px}
+.sub{font-size:10px;color:var(--mute);margin-top:3px}
+.pos{color:var(--green)}.neg{color:var(--red)}.blu{color:var(--blue)}.gld{color:var(--gold)}
+.spark{display:flex;gap:1px;align-items:flex-end;height:16px;margin-top:4px}
+.spark .b{width:3px;min-height:1px}
+.spark .u{background:var(--green)}.spark .d{background:var(--red)}
 </style>
 </head>
 <body>
-<div class="grid" id="grid"></div>
+<div class="grid" id="g"></div>
 <script>
-const params = new URLSearchParams(window.location.search);
-const theme = params.get('theme') || localStorage.getItem('sfti-theme') || 'dark';
-document.body.classList.add('theme-' + theme);
-
-function fmt(n) {
-  const abs = Math.abs(n);
-  const s = abs >= 10000 ? (abs/1000).toFixed(1) + 'k' : abs >= 1000 ? abs.toLocaleString('en-US', {maximumFractionDigits: 0}) : abs.toFixed(2);
-  return n >= 0 ? '+$' + s : '-$' + s;
-}
-
-async function load() {
-  const resp = await fetch('../trades-index.json');
-  const data = await resp.json();
-  const s = data.statistics || {};
-  const trades = data.trades || [];
-  const daily = data.daily_pnl || {};
-
-  // Recent 10 trades for sparkline
-  const recent = trades.slice(-15);
-  const sparkHtml = recent.map(t => {
-    const h = Math.min(Math.max(Math.abs(t.pnl_usd) / 500 * 20, 3), 20);
-    const cls = t.pnl_usd >= 0 ? 'up' : 'down';
-    return '<div class="bar ' + cls + '" style="height:' + h + 'px"></div>';
-  }).join('');
-
-  // This month P&L
-  const now = new Date();
-  const monthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  let monthPnl = 0, monthTrades = 0;
-  for (const [date, d] of Object.entries(daily)) {
-    if (date.startsWith(monthKey)) { monthPnl += d.net; monthTrades += d.trades.length; }
-  }
-
-  // This week P&L
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay());
-  let weekPnl = 0;
-  for (const [date, d] of Object.entries(daily)) {
-    if (new Date(date + 'T12:00:00') >= weekStart) weekPnl += d.net;
-  }
-
-  // Best day
-  const days = Object.entries(daily).sort((a, b) => b[1].net - a[1].net);
-  const bestDay = days[0];
-
-  const cards = [
-    { label: 'Total P&L', value: fmt(s.total_pnl), cls: s.total_pnl >= 0 ? 'green' : 'red', vcls: s.total_pnl >= 0 ? 'pos' : 'neg', sub: s.total_trades + ' trades', spark: sparkHtml },
-    { label: 'Win Rate', value: s.win_rate + '%', cls: s.win_rate >= 50 ? 'green' : 'red', vcls: s.win_rate >= 50 ? 'pos' : 'neg', sub: s.winning_trades + 'W / ' + s.losing_trades + 'L' },
-    { label: 'Profit Factor', value: s.profit_factor.toFixed(2), cls: s.profit_factor >= 1 ? 'green' : 'red', vcls: s.profit_factor >= 1 ? 'pos' : 'neg', sub: 'Avg win: ' + fmt(s.average_win) },
-    { label: 'This Month', value: fmt(monthPnl), cls: monthPnl >= 0 ? 'green' : 'red', vcls: monthPnl >= 0 ? 'pos' : 'neg', sub: monthTrades + ' trades this month' },
-    { label: 'This Week', value: fmt(weekPnl), cls: weekPnl >= 0 ? 'green' : 'red', vcls: weekPnl >= 0 ? 'pos' : 'neg', sub: 'Current week' },
-    { label: 'Best Day', value: bestDay ? fmt(bestDay[1].net) : 'N/A', cls: 'gold', vcls: 'gold', sub: bestDay ? bestDay[0] : '' },
-    { label: 'Max Drawdown', value: '-$' + s.max_drawdown.toLocaleString('en-US', {maximumFractionDigits: 0}), cls: 'red', vcls: 'neg', sub: 'From peak equity' },
-    { label: 'Best Trade', value: fmt(s.best_trade), cls: 'green', vcls: 'pos', sub: 'Single trade max' },
-  ];
-
-  document.getElementById('grid').innerHTML = cards.map(c =>
-    '<div class="kpi ' + c.cls + '">' +
-    '<div class="label">' + c.label + '</div>' +
-    '<div class="value ' + c.vcls + '">' + c.value + '</div>' +
-    '<div class="sub">' + c.sub + '</div>' +
-    (c.spark ? '<div class="spark">' + c.spark + '</div>' : '') +
-    '</div>'
-  ).join('');
-}
-load();
+const P=new URLSearchParams(location.search);
+const t=P.get('theme')||'light';if(t==='dark')document.body.classList.add('theme-dark');
+async function L(){
+const r=await fetch('../trades-index.json');const d=await r.json();
+const s=d.statistics||{};const tr=d.trades||[];const dp=d.daily_pnl||{};
+const rc=tr.slice(-15);
+const sk=rc.map(t=>{const h=Math.min(Math.max(Math.abs(t.pnl_usd)/500*16,2),16);return'<div class="b '+(t.pnl_usd>=0?'u':'d')+'" style="height:'+h+'px"></div>'}).join('');
+const now=new Date();const mk=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+let mp=0,mt=0;for(const[dt,v]of Object.entries(dp)){if(dt.startsWith(mk)){mp+=v.net;mt+=v.trades.length}}
+const ws=new Date(now);ws.setDate(now.getDate()-now.getDay());let wp=0;
+for(const[dt,v]of Object.entries(dp)){if(new Date(dt+'T12:00:00')>=ws)wp+=v.net}
+const f=n=>(n>=0?'+$':'-$')+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0});
+const cs=[
+{l:'TOTAL P&L',v:f(s.total_pnl),c:s.total_pnl>=0?'pos':'neg',s:s.total_trades+' trades',sk},
+{l:'WIN RATE',v:s.win_rate+'%',c:s.win_rate>=50?'pos':'neg',s:s.winning_trades+'W / '+s.losing_trades+'L'},
+{l:'PROFIT FACTOR',v:s.profit_factor.toFixed(2),c:s.profit_factor>=1?'pos':'neg',s:'Avg win '+f(s.average_win)},
+{l:'THIS MONTH',v:f(mp),c:mp>=0?'pos':'neg',s:mt+' trades'},
+{l:'THIS WEEK',v:f(wp),c:wp>=0?'pos':'neg',s:'Current week'},
+{l:'MAX DRAWDOWN',v:'-$'+Math.abs(s.max_drawdown).toLocaleString('en-US',{maximumFractionDigits:0}),c:'neg',s:'From peak'},
+{l:'BEST TRADE',v:f(s.best_trade),c:'pos',s:'Single max'},
+{l:'WORST TRADE',v:f(s.worst_trade),c:'neg',s:'Single min'},
+];
+document.getElementById('g').innerHTML=cs.map(c=>'<div class="kpi"><div class="label">'+c.l+'</div><div class="value '+c.c+'">'+c.v+'</div><div class="sub">'+c.s+'</div>'+(c.sk?'<div class="spark">'+c.sk+'</div>':'')+'</div>').join('');
+}L();
 </script>
 </body>
 </html>
