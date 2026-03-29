@@ -3,56 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Performance by Day of Week</title>
+<title>By Day</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
 <style>
-:root { --bg: #0a0e27; --text: #e4e4e7; --green: #00ff88; --red: #ff4757; }
-.theme-light { --bg: #f8f9fa; --text: #1a1a2e; --green: #00c853; --red: #d32f2f; }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 16px; height: 100vh; display: flex; flex-direction: column; }
-h3 { font-size: 14px; margin-bottom: 8px; opacity: 0.7; }
-.chart-wrap { flex: 1; position: relative; }
+:root{--bg:#fff;--text:#1a1a1a;--mute:#999;--border:#ebebeb;--green:#2d8a56;--red:#c0392b;--grid:#f5f5f5}
+.theme-dark{--bg:#0c0c0c;--text:#e8e8e8;--mute:#666;--border:#222;--green:#4a9e6e;--red:#c75050;--grid:#1a1a1a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;height:100vh;display:flex;flex-direction:column}
+.head{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--mute);font-weight:500;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.wrap{flex:1;position:relative}
 </style>
 </head>
 <body>
-<h3>P&L by Day of Week</h3>
-<div class="chart-wrap"><canvas id="chart"></canvas></div>
+<div class="head">P&L by Day of Week</div>
+<div class="wrap"><canvas id="c"></canvas></div>
 <script>
-const params = new URLSearchParams(window.location.search);
-const theme = params.get('theme') || 'dark';
-document.body.classList.add('theme-' + theme);
-const isDark = theme === 'dark';
-
-async function load() {
-  const resp = await fetch('../trades-index.json');
-  const data = await resp.json();
-  const bd = data.by_day_of_week || {};
-  const order = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
-  const labels = order.filter(d => bd[d]);
-  const values = labels.map(d => bd[d].total);
-  const counts = labels.map(d => bd[d].count);
-  const colors = values.map(v => v >= 0 ? '#00ff88' : '#ff4757');
-
-  new Chart(document.getElementById('chart'), {
-    type: 'bar',
-    data: {
-      labels: labels.map(d => d.slice(0, 3)),
-      datasets: [{ data: values, backgroundColor: colors, borderRadius: 6, barThickness: 40 }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: { label: (ctx) => '$' + ctx.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' (' + counts[ctx.dataIndex] + ' trades)' }
-      }},
-      scales: {
-        x: { ticks: { color: isDark ? '#e4e4e7' : '#1a1a2e', font: { weight: 'bold' } }, grid: { display: false } },
-        y: { ticks: { color: isDark ? '#71717a' : '#6b7280', callback: v => '$' + v.toLocaleString() }, grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' } }
-      }
-    }
-  });
-}
-load();
+const t=(new URLSearchParams(location.search)).get('theme')||'light';
+if(t==='dark')document.body.classList.add('theme-dark');
+const dk=t==='dark';const g=getComputedStyle(document.body);
+async function L(){
+const r=await fetch('../trades-index.json');const d=await r.json();const bd=d.by_day_of_week||{};
+const order=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const labels=order.filter(d=>bd[d]);const vals=labels.map(d=>bd[d].total);const cts=labels.map(d=>bd[d].count);
+const gc=g.getPropertyValue('--green').trim(),rc=g.getPropertyValue('--red').trim();
+new Chart(document.getElementById('c'),{type:'bar',data:{labels:labels.map(d=>d.slice(0,3)),datasets:[{data:vals,backgroundColor:vals.map(v=>v>=0?gc:rc),barThickness:32}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>'$'+ctx.parsed.y.toLocaleString('en-US',{minimumFractionDigits:2})+' ('+cts[ctx.dataIndex]+' trades)'}}},scales:{x:{ticks:{color:dk?'#ccc':'#555',font:{weight:'600',size:11}},grid:{display:false},border:{display:false}},y:{ticks:{color:dk?'#555':'#bbb',callback:v=>'$'+v.toLocaleString(),font:{size:9,family:'Menlo,monospace'}},grid:{color:dk?'#1a1a1a':'#f5f5f5',lineWidth:0.5},border:{display:false}}}}});
+}L();
 </script>
 </body>
 </html>
