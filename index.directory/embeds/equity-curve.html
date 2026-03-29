@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
 <style>
 :root{--bg:#fff;--text:#1a1a1a;--mute:#999;--border:#ebebeb;--green:#2d8a56;--red:#c0392b}
-.theme-dark{--bg:#0c0c0c;--text:#e8e8e8;--mute:#666;--border:#222;--green:#4a9e6e;--red:#c75050}
+.theme-dark{--bg:#191919;--text:#e3e3e3;--mute:#9b9a97;--border:#2f2f2f;--green:#4a9e6e;--red:#c75050}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%}
 body{font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif;background:var(--bg);color:var(--text);padding:16px 20px;height:100vh;display:flex;flex-direction:column}
@@ -45,7 +45,7 @@ const grad=ctx.createLinearGradient(0,0,0,ctx.canvas.parentElement.clientHeight|
 if(last>=0){grad.addColorStop(0,'rgba(45,138,86,0.15)');grad.addColorStop(1,'rgba(45,138,86,0.0)')}
 else{grad.addColorStop(0,'rgba(192,57,43,0.15)');grad.addColorStop(1,'rgba(192,57,43,0.0)')}
 
-new Chart(document.getElementById('c'),{type:'line',data:{labels,datasets:[{data:vals,borderColor:cl,backgroundColor:grad,fill:true,tension:0.2,pointRadius:0,pointHoverRadius:4,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'$'+ctx.parsed.y.toLocaleString('en-US',{minimumFractionDigits:2})},titleFont:{family:'SFMono-Regular,monospace',size:10},bodyFont:{family:'SFMono-Regular,monospace',size:12}}},scales:{x:{ticks:{color:dk?'#555':'#bbb',maxTicksLimit:8,font:{size:9,family:'SFMono-Regular,monospace'}},grid:{display:false},border:{display:false}},y:{ticks:{color:dk?'#555':'#bbb',callback:v=>v>=0?'$'+v.toLocaleString():'-$'+Math.abs(v).toLocaleString(),font:{size:9,family:'SFMono-Regular,monospace'}},grid:{color:dk?'#1a1a1a':'#f5f5f5',lineWidth:0.5},border:{display:false}}}}});
+new Chart(document.getElementById('c'),{type:'line',data:{labels,datasets:[{data:vals,borderColor:cl,backgroundColor:grad,fill:true,tension:0.2,pointRadius:0,pointHoverRadius:4,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'$'+ctx.parsed.y.toLocaleString('en-US',{minimumFractionDigits:2})},titleFont:{family:'SFMono-Regular,monospace',size:10},bodyFont:{family:'SFMono-Regular,monospace',size:12}}},scales:{x:{ticks:{color:dk?'#5a5a5a':'#bbb',maxTicksLimit:8,font:{size:9,family:'SFMono-Regular,monospace'}},grid:{display:false},border:{display:false}},y:{ticks:{color:dk?'#5a5a5a':'#bbb',callback:v=>v>=0?'$'+v.toLocaleString():'-$'+Math.abs(v).toLocaleString(),font:{size:9,family:'SFMono-Regular,monospace'}},grid:{color:dk?'#252525':'#f5f5f5',lineWidth:0.5},border:{display:false}}}}});
 document.getElementById('foot').innerHTML=
   'Win Rate <b>'+s.win_rate+'%</b>'+
   'Trades <b>'+s.total_trades+'</b>'+
