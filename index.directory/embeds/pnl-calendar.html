@@ -16,15 +16,16 @@ body{font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Helve
 .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-bottom:1px}
 .dow div{text-align:center;font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--mute);padding:4px 0;font-weight:500}
 .gr{display:grid;grid-template-columns:repeat(7,1fr);gap:0}
-.dy{min-height:56px;padding:3px 5px;border:0.5px solid var(--border);position:relative}
+.dy{aspect-ratio:1;padding:6px 8px;border:0.5px solid var(--border);position:relative;display:flex;flex-direction:column}
 .dy.mt{opacity:0.2}
 .dy .dt{font-size:9px;color:var(--mute)}
-.dy .pl{font-size:11px;font-weight:600;margin-top:2px;font-family:SFMono-Regular,iawritermonoS,"Roboto Mono",Menlo,Consolas,monospace;letter-spacing:-0.3px}
+.dy .pl{font-size:13px;font-weight:600;margin-top:4px;font-family:SFMono-Regular,iawritermonoS,"Roboto Mono",Menlo,Consolas,monospace;letter-spacing:-0.3px}
 .dy.w{background:var(--gbg)}.dy.w .pl{color:var(--green)}
 .dy.l{background:var(--rbg)}.dy.l .pl{color:var(--red)}
 .dy.bw{background:var(--gbg2)}.dy.bl{background:var(--rbg2)}
 .dy.td{box-shadow:inset 0 0 0 1.5px var(--accent)}
-.tc{font-size:8px;padding:1px 0;display:flex;justify-content:space-between;border-top:0.5px solid var(--border);margin-top:1px}
+.dy .cards{margin-top:auto}
+.tc{font-size:9px;padding:2px 0;display:flex;justify-content:space-between;border-top:0.5px solid var(--border);margin-top:1px}
 .tc .tk{font-weight:600;color:var(--mute)}.tc .tp{font-family:SFMono-Regular,iawritermonoS,"Roboto Mono",Menlo,Consolas,monospace}
 .tc .tp.p{color:var(--green)}.tc .tp.n{color:var(--red)}
 .ft{display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:10px;color:var(--mute)}
@@ -71,7 +72,7 @@ if(dd){
 const n=dd.net;mp+=n;mt+=dd.trades.length;
 if(n>0){mw++;c+=Math.abs(n)>1000?' bw':' w'}else if(n<0){ml++;c+=Math.abs(n)>1000?' bl':' l'}
 let tc='';for(const t of dd.trades){const pc=t.pnl>=0?'p':'n';tc+='<div class="tc"><span class="tk">'+t.ticker+'</span><span class="tp '+pc+'">'+f(t.pnl)+'</span></div>'}
-h+='<div class="'+c+'"><div class="dt">'+d+'</div><div class="pl">'+f(n)+'</div>'+tc+'</div>';
+h+='<div class="'+c+'"><div class="dt">'+d+'</div><div class="pl">'+f(n)+'</div><div class="cards">'+tc+'</div></div>';
 }else{h+='<div class="'+c+'"><div class="dt">'+d+'</div></div>'}
 }
 document.getElementById('gr').innerHTML=h;
