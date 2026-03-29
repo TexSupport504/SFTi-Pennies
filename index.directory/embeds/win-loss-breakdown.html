@@ -3,59 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Win/Loss Breakdown</title>
+<title>Win/Loss</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
 <style>
-:root { --bg: #0a0e27; --text: #e4e4e7; --card-bg: rgba(255,255,255,0.06); --border: #27272a; --green: #00ff88; --red: #ff4757; }
-.theme-light { --bg: #f8f9fa; --text: #1a1a2e; --card-bg: rgba(0,0,0,0.04); --border: #dee2e6; --green: #00c853; --red: #d32f2f; }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 16px; height: 100vh; display: flex; gap: 16px; align-items: center; }
-.chart-side { width: 45%; position: relative; }
-.stats-side { width: 55%; display: flex; flex-direction: column; gap: 10px; }
-.stat-row { display: flex; justify-content: space-between; padding: 10px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; }
-.stat-row .label { font-size: 12px; opacity: 0.6; }
-.stat-row .val { font-size: 18px; font-weight: 700; }
-.stat-row .val.pos { color: var(--green); }
-.stat-row .val.neg { color: var(--red); }
+:root{--bg:#fff;--text:#1a1a1a;--mute:#999;--border:#ebebeb;--green:#2d8a56;--red:#c0392b}
+.theme-dark{--bg:#0c0c0c;--text:#e8e8e8;--mute:#666;--border:#222;--green:#4a9e6e;--red:#c75050}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;height:100vh;display:flex;gap:20px;align-items:stretch}
+.ch{width:40%;display:flex;align-items:center;justify-content:center}
+.ch canvas{max-height:200px}
+.rows{width:60%;display:flex;flex-direction:column;justify-content:center;gap:0}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.row .lb{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:0.8px}
+.row .vl{font-size:15px;font-weight:600;font-family:Menlo,Consolas,monospace;letter-spacing:-0.3px;margin-top:1px}
+.pos{color:var(--green)}.neg{color:var(--red)}
 </style>
 </head>
 <body>
-<div class="chart-side"><canvas id="chart"></canvas></div>
-<div class="stats-side" id="stats"></div>
+<div class="ch"><canvas id="c"></canvas></div>
+<div class="rows" id="rows"></div>
 <script>
-const params = new URLSearchParams(window.location.search);
-const theme = params.get('theme') || 'dark';
-document.body.classList.add('theme-' + theme);
-
-async function load() {
-  const resp = await fetch('../trades-index.json');
-  const data = await resp.json();
-  const s = data.statistics || {};
-
-  new Chart(document.getElementById('chart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Wins', 'Losses'],
-      datasets: [{ data: [s.winning_trades, s.losing_trades], backgroundColor: ['#00ff88', '#ff4757'], borderWidth: 0, cutout: '70%' }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'bottom', labels: { color: theme === 'dark' ? '#e4e4e7' : '#1a1a2e', font: { size: 12 } } },
-        tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed + ' trades' } }
-      }
-    }
-  });
-
-  const fmt = n => (n >= 0 ? '+$' : '-$') + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: 2});
-  document.getElementById('stats').innerHTML =
-    '<div class="stat-row"><div><div class="label">Win Rate</div><div class="val pos">' + s.win_rate + '%</div></div><div><div class="label">Profit Factor</div><div class="val">' + s.profit_factor + '</div></div></div>' +
-    '<div class="stat-row"><div><div class="label">Avg Win</div><div class="val pos">' + fmt(s.average_win) + '</div></div><div><div class="label">Avg Loss</div><div class="val neg">' + fmt(s.average_loss) + '</div></div></div>' +
-    '<div class="stat-row"><div><div class="label">Best Trade</div><div class="val pos">' + fmt(s.best_trade) + '</div></div><div><div class="label">Worst Trade</div><div class="val neg">' + fmt(s.worst_trade) + '</div></div></div>' +
-    '<div class="stat-row"><div><div class="label">Win Streak</div><div class="val">' + s.max_win_streak + '</div></div><div><div class="label">Loss Streak</div><div class="val">' + s.max_loss_streak + '</div></div></div>' +
-    '<div class="stat-row"><div><div class="label">Max Drawdown</div><div class="val neg">-$' + s.max_drawdown.toLocaleString('en-US', {minimumFractionDigits: 2}) + '</div></div><div><div class="label">Total P&L</div><div class="val ' + (s.total_pnl >= 0 ? 'pos' : 'neg') + '">' + fmt(s.total_pnl) + '</div></div></div>';
-}
-load();
+const t=(new URLSearchParams(location.search)).get('theme')||'light';
+if(t==='dark')document.body.classList.add('theme-dark');
+const g=getComputedStyle(document.body);
+async function L(){
+const r=await fetch('../trades-index.json');const d=await r.json();const s=d.statistics||{};
+const gc=g.getPropertyValue('--green').trim(),rc=g.getPropertyValue('--red').trim();
+new Chart(document.getElementById('c'),{type:'doughnut',data:{labels:['Wins','Losses'],datasets:[{data:[s.winning_trades,s.losing_trades],backgroundColor:[gc,rc],borderWidth:0,cutout:'72%'}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}}}});
+const f=n=>(n>=0?'+$':'-$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2});
+const rows=[
+['Win Rate',s.win_rate+'%',s.win_rate>=50?'pos':'neg','Profit Factor',s.profit_factor.toFixed(2),s.profit_factor>=1?'pos':'neg'],
+['Avg Win',f(s.average_win),'pos','Avg Loss',f(s.average_loss),'neg'],
+['Best Trade',f(s.best_trade),'pos','Worst Trade',f(s.worst_trade),'neg'],
+['Win Streak',s.max_win_streak+'','','Loss Streak',s.max_loss_streak+'',''],
+['Max Drawdown','-$'+s.max_drawdown.toLocaleString('en-US',{minimumFractionDigits:2}),'neg','Total P&L',f(s.total_pnl),s.total_pnl>=0?'pos':'neg'],
+];
+document.getElementById('rows').innerHTML=rows.map(r=>'<div class="row"><div><div class="lb">'+r[0]+'</div><div class="vl '+r[2]+'">'+r[1]+'</div></div><div style="text-align:right"><div class="lb">'+r[3]+'</div><div class="vl '+r[5]+'">'+r[4]+'</div></div></div>').join('');
+}L();
 </script>
 </body>
 </html>
